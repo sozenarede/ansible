@@ -1,0 +1,26 @@
+---
+    - name: Cria Dicionário com conteúdo de arquivo.
+      hosts: localhost
+      become: False
+      gather_facts: False
+
+      tasks:
+      - name: Cria indice dicionário 
+        shell: "ls -1 *.txt"
+        register: ls_reg
+
+      - name: Cria valores dicionário
+        shell: "cat {{ item }}"
+        register: cat_reg
+        with_items:
+            "{{ ls_reg['stdout_lines'] }}"
+
+      - name: Cria Dicinário
+        set_fact:
+            opa: "{{ opa | default({}) | combine({item['item'].split('.')[0]: item['stdout_lines']}) }}"
+        with_items:
+            "{{ cat_reg['results'] }}"
+
+      - name: Debug
+        debug:
+            var: opa['a']
